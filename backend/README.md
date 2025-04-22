@@ -6,65 +6,75 @@ A robust and scalable REST API built with Node.js, Express, and MongoDB that pow
 
 ### Authentication & Authorization
 - Multi-role authentication (Admin, Teachers, Students)
-- Secure password hashing using bcrypt
+- Password security with bcrypt hashing
 - Role-based access control for different API endpoints
+- Session management and validation
 
 ### School Administration
-- School registration and management
+- School registration with unique identifiers
 - Multiple schools support with isolated data
 - Comprehensive school profile management
+- Administrative dashboard capabilities
 
 ### Class Management
-- Create and manage multiple classes
-- Assign teachers to classes
+- Create and manage multiple classes per school
+- Assign teachers to specific classes
 - Track class-wise students and subjects
-- Automatic cleanup of related data on class deletion
+- Automatic cascade deletion for related data
 
 ### Student Management
-- Student registration and profile management
-- Roll number validation within class scope
-- Attendance tracking for each subject
+- Student registration with unique roll numbers per class
+- Profile management with secure authentication
+- Attendance tracking per subject
 - Exam result recording and management
 - Session-wise attendance limits
+- Comprehensive student performance tracking
 
 ### Teacher Management
 - Teacher registration and profile management
-- Subject assignment system
+- Subject assignment system with validation
 - Class assignment capabilities
-- Attendance tracking
-- Relationship management with subjects and classes
+- Teacher attendance tracking
+- Subject-class relationship management
+- Performance monitoring tools
 
 ### Subject Management
-- Subject creation with unique subject codes
+- Subject creation with unique codes
 - Session tracking for each subject
-- Teacher assignment system
+- Teacher assignment and reassignment
 - Class-wise subject organization
+- Subject deletion with data cleanup
 
 ### Attendance System
-- Student attendance tracking per subject
+- Student attendance tracking by subject
 - Session-wise attendance limitations
 - Teacher attendance management
 - Bulk attendance operations
 - Attendance reports and statistics
+- Attendance modification controls
 
 ### Examination System
 - Record and manage exam results
 - Subject-wise marks tracking
 - Result updates and modifications
 - Student performance tracking
+- Grade calculation and reporting
 
 ### Notice Board
 - School-wide notice creation
 - Notice updating and management
-- Selective notice visibility
+- Date-based notice organization
 - Notice archival system
+- School-specific notice filtering
 
 ### Complaint Management
-- Student complaint submission
+- Student complaint submission system
 - School-wise complaint tracking
-- Complaint status management
+- Date-based complaint organization
+- Complaint status tracking
+- Admin complaint review system
 
-## 📝 API Endpoints
+## 📝 API Documentation
 
 ### Admin Routes
 ```javascript
@@ -83,6 +93,8 @@ PUT    /api/Student/:id            // Update student info
 DELETE /api/Student/:id            // Delete student
 PUT    /api/UpdateExamResult/:id   // Update exam results
 PUT    /api/StudentAttendance/:id  // Mark/update attendance
+PUT    /api/RemoveStudentSubAtten/:id  // Remove subject attendance
+PUT    /api/RemoveStudentAtten/:id     // Remove all attendance
 ```
 
 ### Teacher Routes
@@ -103,6 +115,7 @@ GET    /api/SclassList/:id     // List all classes
 GET    /api/Sclass/:id         // Get class details
 GET    /api/Sclass/Students/:id // Get class students
 DELETE /api/Sclass/:id         // Delete class
+DELETE /api/Sclasses/:id       // Delete all classes
 ```
 
 ### Subject Routes
@@ -112,6 +125,7 @@ GET    /api/AllSubjects/:id    // List all subjects
 GET    /api/ClassSubjects/:id  // Get class subjects
 GET    /api/Subject/:id        // Get subject details
 DELETE /api/Subject/:id        // Delete subject
+GET    /api/FreeSubjectList/:id // Get unassigned subjects
 ```
 
 ### Notice Routes
@@ -120,6 +134,7 @@ POST   /api/NoticeCreate      // Create new notice
 GET    /api/NoticeList/:id    // List all notices
 PUT    /api/Notice/:id        // Update notice
 DELETE /api/Notice/:id        // Delete notice
+DELETE /api/Notices/:id       // Delete all notices
 ```
 
 ### Complaint Routes
@@ -131,19 +146,47 @@ GET  /api/ComplainList/:id   // List all complaints
 ## 🛠️ Technical Architecture
 
 ### Database Schema
-- **Admin Schema**: School administration data
-- **Student Schema**: Student profiles with attendance and results
-- **Teacher Schema**: Teacher profiles with subject assignments
+- **Admin Schema**: School/admin data with password encryption
+  - Fields: name, email, password, role, schoolName
+  - Validations: Unique email and school name
+
+- **Student Schema**: Student profiles with exam and attendance
+  - Fields: name, rollNum, password, class, school, examResult, attendance
+  - Relations: References to class, school, and subjects
+  - Nested schemas for exam results and attendance
+
+- **Teacher Schema**: Teacher profiles with assignments
+  - Fields: name, email, password, role, school, subject, class
+  - Relations: References to school, subject, and class
+  - Attendance tracking with dates
+
 - **Class Schema**: Class organization
-- **Subject Schema**: Subject details with teacher assignments
-- **Notice Schema**: School notices and announcements
-- **Complaint Schema**: Student complaints and tracking
+  - Fields: className, school
+  - Relations: Reference to school
+  - Cascade delete triggers
+
+- **Subject Schema**: Subject details
+  - Fields: subName, subCode, sessions, class, school, teacher
+  - Relations: References to class, school, and teacher
+  - Unique subject code validation
+
+- **Notice Schema**: School notices
+  - Fields: title, details, date, school
+  - Relations: Reference to school
+  - Date-based organization
+
+- **Complaint Schema**: Student complaints
+  - Fields: user, date, complaint, school
+  - Relations: References to student and school
+  - Date tracking
 
 ### Data Relationships
 ```
 Admin (School)
   ├── Classes
   │     ├── Students
+  │     │     ├── Attendance Records
+  │     │     └── Exam Results
   │     └── Subjects
   │           └── Teachers
   ├── Notices
@@ -156,6 +199,13 @@ Admin (School)
 - Node.js >= 12.0.0
 - MongoDB >= 4.4.0
 - npm or yarn package manager
+
+### Environment Variables
+Create a .env file with these configurations:
+```env
+MONGODB_URI=<your-mongodb-connection-string>
+PORT=5000
+```
 
 ### Setup Steps
 
@@ -170,95 +220,100 @@ cd backend
 npm install
 ```
 
-3. **Environment Configuration**
-Create a .env file:
-```env
-MONGODB_URI=<your-mongodb-connection-string>
-PORT=5000
-```
-
-4. **Start the Server**
+3. **Start the Server**
 ```bash
-# Development mode
+# Development mode with nodemon
 npm start
 
 # Production mode
 node index.js
 ```
 
-## 🔐 Security Measures
-
-1. **Password Security**
-   - Password hashing using bcrypt
-   - Salt rounds configuration
-   - Secure password validation
-
-2. **Data Validation**
-   - Input validation for all requests
-   - Data type checking
-   - Required field validation
-
-3. **Error Handling**
-   - Comprehensive error catching
-   - Proper error responses
-   - Status code implementation
-
-## 🔍 Testing
-
-Run tests using:
-```bash
-npm test
-```
-
 ## 📦 Dependencies
 
-- `express`: Web framework
-- `mongoose`: MongoDB ODM
+- `express`: Web application framework
+- `mongoose`: MongoDB object modeling
 - `bcrypt`: Password hashing
 - `cors`: Cross-origin resource sharing
 - `dotenv`: Environment configuration
-- `body-parser`: Request body parsing
+- `body-parser`: Request parsing middleware
 - `nodemon`: Development server
 
-## 🤝 Contributing
+## 🔐 Security Measures
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a pull request
+1. **Password Security**
+   - Bcrypt hashing implementation
+   - Salt rounds configuration
+   - Secure password validation
+   - Password field exclusion in responses
 
-## 📄 License
+2. **Data Validation**
+   - Mongoose schema validation
+   - Request body validation
+   - Unique field constraints
+   - Required field validation
 
-This project is licensed under the ISC License.
+3. **Error Handling**
+   - Try-catch blocks
+   - Proper error responses
+   - Status code implementation
+   - Error message standardization
+
+## 🚀 API Response Format
+
+### Success Response
+```json
+{
+  "data": {},           // Response data
+  "message": "Success"  // Optional success message
+}
+```
+
+### Error Response
+```json
+{
+  "message": "Error message", // Error description
+  "error": {}                // Optional error details
+}
+```
 
 ## 🐛 Known Issues & Limitations
 
 1. No rate limiting implemented
 2. Needs pagination for large data sets
 3. Could benefit from caching layer
-4. API documentation could be more detailed
+4. Limited validation messages
+5. Basic error responses
+6. No file upload capability
 
 ## 🔜 Future Improvements
 
 1. Implement JWT authentication
 2. Add API rate limiting
-3. Implement caching
-4. Add more comprehensive logging
+3. Implement response caching
+4. Add comprehensive logging
 5. Enhance error handling
-6. Add API documentation using Swagger
+6. Add Swagger documentation
 7. Implement real-time notifications
-8. Add file upload capabilities
-9. Implement data export features
-10. Add report generation
+8. Add file upload support
+9. Add data export features
+10. Implement report generation
 
-## 📚 Documentation Resources
+## 🤝 Contributing
 
-For more detailed information about the APIs and implementation:
+1. Fork the repository
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create pull request
+
+## 📄 License
+
+This project is licensed under the ISC License.
+
+## 📚 Additional Resources
+
 - [Express.js Documentation](https://expressjs.com/)
 - [Mongoose Documentation](https://mongoosejs.com/)
 - [Node.js Documentation](https://nodejs.org/)
-
-## 📞 Support
-
-For support and queries, please create an issue in the repository.
+- [MongoDB Documentation](https://www.mongodb.com/docs/)
