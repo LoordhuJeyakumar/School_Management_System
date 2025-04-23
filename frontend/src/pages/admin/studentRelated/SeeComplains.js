@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Paper, Box, Checkbox
+  Paper, Box, Checkbox, Typography, CircularProgress,
+  Container, Card, CardContent, useTheme
 } from '@mui/material';
 import { getAllComplains } from '../../../redux/complainRelated/complainHandle';
 import TableTemplate from '../../../components/TableTemplate';
 
 const SeeComplains = () => {
-
-  const label = { inputProps: { 'aria-label': 'Checkbox demo' } };  const dispatch = useDispatch();
+  const theme = useTheme();
+  const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
+  const dispatch = useDispatch();
   const { complainsList, loading, error, response } = useSelector((state) => state.complain);
-  const { currentUser } = useSelector(state => state.user)
+  const { currentUser } = useSelector(state => state.user);
 
   useEffect(() => {
     dispatch(getAllComplains(currentUser._id, "Complain"));
@@ -39,32 +41,69 @@ const SeeComplains = () => {
 
   const ComplainButtonHaver = ({ row }) => {
     return (
-      <>
-        <Checkbox {...label} />
-      </>
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Checkbox {...label} sx={{
+          '&.Mui-checked': {
+            color: theme.palette.primary.main,
+          }
+        }} />
+      </Box>
     );
   };
 
   return (
-    <>
-      {loading ?
-        <div>Loading...</div>
-        :
-        <>
-          {response ?
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-              No Complains Right Now
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Card elevation={3}>
+        <CardContent>
+          <Typography variant="h5" component="h2" gutterBottom sx={{ 
+            color: theme.palette.primary.main,
+            fontWeight: 600,
+            mb: 3
+          }}>
+            Student Complaints
+          </Typography>
+          
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+              <CircularProgress />
             </Box>
-            :
-            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-              {Array.isArray(complainsList) && complainsList.length > 0 &&
-                <TableTemplate buttonHaver={ComplainButtonHaver} columns={complainColumns} rows={complainRows} />
-              }
-            </Paper>
-          }
-        </>
-      }
-    </>
+          ) : (
+            <>
+              {response ? (
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center',
+                  minHeight: '200px',
+                  backgroundColor: theme.palette.grey[50],
+                  borderRadius: 1
+                }}>
+                  <Typography variant="h6" sx={{ color: theme.palette.text.secondary }}>
+                    No Complaints Available
+                  </Typography>
+                </Box>
+              ) : (
+                <Paper sx={{ 
+                  width: '100%', 
+                  overflow: 'hidden',
+                  boxShadow: 'none',
+                  backgroundColor: theme.palette.background.paper,
+                  borderRadius: 2
+                }}>
+                  {Array.isArray(complainsList) && complainsList.length > 0 && (
+                    <TableTemplate 
+                      buttonHaver={ComplainButtonHaver} 
+                      columns={complainColumns} 
+                      rows={complainRows}
+                    />
+                  )}
+                </Paper>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </Container>
   );
 };
 

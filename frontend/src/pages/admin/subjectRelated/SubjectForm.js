@@ -1,14 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { Button, TextField, Grid, Box, Typography, CircularProgress } from "@mui/material";
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
+import {
+    Button, TextField, Grid, Box, Typography,
+    Container, Paper, CircularProgress, IconButton,
+    Tooltip
+} from "@mui/material";
+import {
+    Add as AddIcon,
+    Remove as RemoveIcon,
+    MenuBook as SubjectIcon
+} from '@mui/icons-material';
+import { motion, AnimatePresence } from 'framer-motion';
+import styled from '@emotion/styled';
 import Popup from '../../../components/Popup';
 
 const SubjectForm = () => {
     const [subjects, setSubjects] = useState([{ subName: "", subCode: "", sessions: "" }]);
-
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const params = useParams()
@@ -43,7 +53,7 @@ const SubjectForm = () => {
     };
 
     const handleAddSubject = () => {
-        setSubjects([...subjects, { subName: "", subCode: "" }]);
+        setSubjects([...subjects, { subName: "", subCode: "", sessions: "" }]);
     };
 
     const handleRemoveSubject = (index) => () => {
@@ -87,97 +97,159 @@ const SubjectForm = () => {
     }, [status, navigate, error, response, dispatch]);
 
     return (
-        <form onSubmit={submitHandler}>
-            <Box mb={2}>
-                <Typography variant="h6" >Add Subjects</Typography>
-            </Box>
-            <Grid container spacing={2}>
-                {subjects.map((subject, index) => (
-                    <React.Fragment key={index}>
-                        <Grid item xs={6}>
-                            <TextField
-                                fullWidth
-                                label="Subject Name"
-                                variant="outlined"
-                                value={subject.subName}
-                                onChange={handleSubjectNameChange(index)}
-                                sx={styles.inputField}
-                                required
-                            />
-                        </Grid>
-                        <Grid item xs={4}>
-                            <TextField
-                                fullWidth
-                                label="Subject Code"
-                                variant="outlined"
-                                value={subject.subCode}
-                                onChange={handleSubjectCodeChange(index)}
-                                sx={styles.inputField}
-                                required
-                            />
-                        </Grid>
-                        <Grid item xs={4}>
-                            <TextField
-                                fullWidth
-                                label="Sessions"
-                                variant="outlined"
-                                type="number"
-                                inputProps={{ min: 0 }}
-                                value={subject.sessions}
-                                onChange={handleSessionsChange(index)}
-                                sx={styles.inputField}
-                                required
-                            />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Box display="flex" alignItems="flex-end">
-                                {index === 0 ? (
-                                    <Button
-                                        variant="outlined"
-                                        color="primary"
-                                        onClick={handleAddSubject}
-                                    >
-                                        Add Subject
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        variant="outlined"
-                                        color="error"
-                                        onClick={handleRemoveSubject(index)}
-                                    >
-                                        Remove
-                                    </Button>
-                                )}
-                            </Box>
-                        </Grid>
-                    </React.Fragment>
-                ))}
-                <Grid item xs={12}>
-                    <Box display="flex" justifyContent="flex-end">
-                        <Button variant="contained" color="primary" type="submit" disabled={loader}>
-                            {loader ? (
-                                <CircularProgress size={24} color="inherit" />
-                            ) : (
-                                'Save'
-                            )}
-                        </Button>
+        <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+            >
+                <StyledPaper elevation={3}>
+                    <Box sx={{ mb: 4, textAlign: 'center' }}>
+                        <SubjectIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
+                        <Typography variant="h4" component="h2" sx={{
+                            fontWeight: 700,
+                            color: 'primary.main',
+                            background: 'linear-gradient(45deg, #4361ee, #3a0ca3)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent'
+                        }}>
+                            Add Subjects
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                            Create new subjects for your class
+                        </Typography>
                     </Box>
-                </Grid>
-                <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-            </Grid>
-        </form>
+
+                    <form onSubmit={submitHandler}>
+                        <AnimatePresence>
+                            {subjects.map((subject, index) => (
+                                <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <SubjectSection elevation={1}>
+                                        <Grid container spacing={3} alignItems="center">
+                                            <Grid item xs={12} sm={6}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Subject Name"
+                                                    variant="outlined"
+                                                    value={subject.subName}
+                                                    onChange={handleSubjectNameChange(index)}
+                                                    required
+                                                />
+                                            </Grid>
+                                            <Grid item xs={12} sm={3}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Subject Code"
+                                                    variant="outlined"
+                                                    value={subject.subCode}
+                                                    onChange={handleSubjectCodeChange(index)}
+                                                    required
+                                                />
+                                            </Grid>
+                                            <Grid item xs={12} sm={3}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Sessions"
+                                                    variant="outlined"
+                                                    type="number"
+                                                    inputProps={{ min: 0 }}
+                                                    value={subject.sessions}
+                                                    onChange={handleSessionsChange(index)}
+                                                    required
+                                                />
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                                    {index === 0 ? (
+                                                        <Tooltip title="Add another subject">
+                                                            <IconButton
+                                                                color="primary"
+                                                                onClick={handleAddSubject}
+                                                                sx={{ 
+                                                                    bgcolor: 'primary.lighter',
+                                                                    '&:hover': { bgcolor: 'primary.light' }
+                                                                }}
+                                                            >
+                                                                <AddIcon />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    ) : (
+                                                        <Tooltip title="Remove this subject">
+                                                            <IconButton
+                                                                color="error"
+                                                                onClick={handleRemoveSubject(index)}
+                                                                sx={{ 
+                                                                    bgcolor: 'error.lighter',
+                                                                    '&:hover': { bgcolor: 'error.light' }
+                                                                }}
+                                                            >
+                                                                <RemoveIcon />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    )}
+                                                </Box>
+                                            </Grid>
+                                        </Grid>
+                                    </SubjectSection>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+
+                        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                            <SubmitButton
+                                variant="contained"
+                                color="primary"
+                                type="submit"
+                                disabled={loader}
+                            >
+                                {loader ? (
+                                    <CircularProgress size={24} sx={{ color: 'white' }} />
+                                ) : (
+                                    'Save Subjects'
+                                )}
+                            </SubmitButton>
+                        </Box>
+                    </form>
+                </StyledPaper>
+            </motion.div>
+            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
+        </Container>
     );
 }
 
-export default SubjectForm
+const StyledPaper = styled(Paper)`
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+`;
 
-const styles = {
-    inputField: {
-        '& .MuiInputLabel-root': {
-            color: '#838080',
-        },
-        '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#838080',
-        },
-    },
-};
+const SubjectSection = styled(Paper)`
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    background-color: #f8fafc;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+`;
+
+const SubmitButton = styled(Button)`
+    min-width: 160px;
+    height: 48px;
+    font-weight: 600;
+    text-transform: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+    transition: all 0.3s ease;
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(67, 97, 238, 0.3);
+    }
+`;
+
+export default SubjectForm;

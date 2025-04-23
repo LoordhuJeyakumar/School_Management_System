@@ -1,169 +1,231 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
 import { getAllTeachers } from '../../../redux/teacherRelated/teacherHandle';
-import {
-    Paper, Table, TableBody, TableContainer,
-    TableHead, TablePagination, Button, Box, IconButton,
-} from '@mui/material';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
-import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import { StyledTableCell, StyledTableRow } from '../../../components/styles';
-import { BlueButton, GreenButton } from '../../../components/buttonStyles';
-import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
+import {
+    Container, Grid, Typography, Box, IconButton,
+    Menu, MenuItem, Avatar, Chip, CircularProgress
+} from '@mui/material';
+import {
+    PersonRemove as DeleteIcon,
+    MoreVert as MoreVertIcon,
+    Class as ClassIcon,
+    MenuBook as SubjectIcon,
+    PersonAdd as PersonAddIcon,
+    Email as EmailIcon,
+} from '@mui/icons-material';
+import { GreenButton } from '../../../components/buttonStyles';
 import SpeedDialTemplate from '../../../components/SpeedDialTemplate';
+import { motion, AnimatePresence } from 'framer-motion';
+import styled from '@emotion/styled';
 import Popup from '../../../components/Popup';
 
 const ShowTeachers = () => {
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
-
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { teachersList, loading, error, response } = useSelector((state) => state.teacher);
-    const { currentUser } = useSelector((state) => state.user);
+    const { currentUser } = useSelector(state => state.user);
+
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [selectedTeacher, setSelectedTeacher] = useState(null);
+    const [showPopup, setShowPopup] = useState(false);
+    const [message, setMessage] = useState("");
 
     useEffect(() => {
         dispatch(getAllTeachers(currentUser._id));
     }, [currentUser._id, dispatch]);
 
-    const [showPopup, setShowPopup] = useState(false);
-    const [message, setMessage] = useState("");
-
-    if (loading) {
-        return <div>Loading...</div>;
-    } else if (response) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                <GreenButton variant="contained" onClick={() => navigate("/Admin/teachers/chooseclass")}>
-                    Add Teacher
-                </GreenButton>
-            </Box>
-        );
-    } else if (error) {
-        console.log(error);
-    }
-
-    const deleteHandler = (deleteID, address) => {
-        console.log(deleteID);
-        console.log(address);
-        setMessage("Sorry the delete function has been disabled for now.")
-        setShowPopup(true)
-
-        // dispatch(deleteUser(deleteID, address)).then(() => {
-        //     dispatch(getAllTeachers(currentUser._id));
-        // });
+    const handleMenuClick = (event, teacher) => {
+        setAnchorEl(event.currentTarget);
+        setSelectedTeacher(teacher);
     };
 
-    const columns = [
-        { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'teachSubject', label: 'Subject', minWidth: 100 },
-        { id: 'teachSclass', label: 'Class', minWidth: 170 },
-    ];
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+        setSelectedTeacher(null);
+    };
 
-    const rows = teachersList.map((teacher) => {
-        return {
-            name: teacher.name,
-            teachSubject: teacher.teachSubject?.subName || null,
-            teachSclass: teacher.teachSclass.sclassName,
-            teachSclassID: teacher.teachSclass._id,
-            id: teacher._id,
-        };
-    });
+    const handleDelete = () => {
+        setMessage("Sorry the delete function has been disabled for now.");
+        setShowPopup(true);
+        handleMenuClose();
+    };
+
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (response) {
+        return (
+            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <GreenButton
+                        variant="contained"
+                        onClick={() => navigate("/Admin/teachers/chooseclass")}
+                        startIcon={<PersonAddIcon />}
+                    >
+                        Add Teacher
+                    </GreenButton>
+                </Box>
+            </Container>
+        );
+    }
 
     const actions = [
         {
-            icon: <PersonAddAlt1Icon color="primary" />, name: 'Add New Teacher',
+            icon: <PersonAddIcon color="primary" />,
+            name: 'Add New Teacher',
             action: () => navigate("/Admin/teachers/chooseclass")
         },
         {
-            icon: <PersonRemoveIcon color="error" />, name: 'Delete All Teachers',
-            action: () => deleteHandler(currentUser._id, "Teachers")
-        },
+            icon: <DeleteIcon color="error" />,
+            name: 'Delete All Teachers',
+            action: () => handleDelete()
+        }
     ];
 
     return (
-        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <TableContainer>
-                <Table stickyHeader aria-label="sticky table">
-                    <TableHead>
-                        <StyledTableRow>
-                            {columns.map((column) => (
-                                <StyledTableCell
-                                    key={column.id}
-                                    align={column.align}
-                                    style={{ minWidth: column.minWidth }}
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+            >
+                <Box sx={{ mb: 4 }}>
+                    <Typography variant="h4" sx={{
+                        fontWeight: 700,
+                        color: 'primary.main',
+                        textAlign: 'center',
+                        background: 'linear-gradient(45deg, #4361ee, #3a0ca3)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
+                    }}>
+                        Teachers Directory
+                    </Typography>
+                </Box>
+
+                <Grid container spacing={3}>
+                    <AnimatePresence>
+                        {teachersList.map((teacher, index) => (
+                            <Grid item xs={12} sm={6} md={4} key={teacher._id}>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{ duration: 0.3, delay: index * 0.1 }}
                                 >
-                                    {column.label}
-                                </StyledTableCell>
-                            ))}
-                            <StyledTableCell align="center">
-                                Actions
-                            </StyledTableCell>
-                        </StyledTableRow>
-                    </TableHead>
-                    <TableBody>
-                        {rows
-                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((row) => {
-                                return (
-                                    <StyledTableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                                        {columns.map((column) => {
-                                            const value = row[column.id];
-                                            if (column.id === 'teachSubject') {
-                                                return (
-                                                    <StyledTableCell key={column.id} align={column.align}>
-                                                        {value ? (
-                                                            value
-                                                        ) : (
-                                                            <Button variant="contained"
-                                                                onClick={() => {
-                                                                    navigate(`/Admin/teachers/choosesubject/${row.teachSclassID}/${row.id}`)
-                                                                }}>
-                                                                Add Subject
-                                                            </Button>
-                                                        )}
-                                                    </StyledTableCell>
-                                                );
-                                            }
-                                            return (
-                                                <StyledTableCell key={column.id} align={column.align}>
-                                                    {column.format && typeof value === 'number' ? column.format(value) : value}
-                                                </StyledTableCell>
-                                            );
-                                        })}
-                                        <StyledTableCell align="center">
-                                            <IconButton onClick={() => deleteHandler(row.id, "Teacher")}>
-                                                <PersonRemoveIcon color="error" />
-                                            </IconButton>
-                                            <BlueButton variant="contained"
-                                                onClick={() => navigate("/Admin/teachers/teacher/" + row.id)}>
-                                                View
-                                            </BlueButton>
-                                        </StyledTableCell>
-                                    </StyledTableRow>
-                                );
-                            })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <TablePagination
-                rowsPerPageOptions={[5, 10, 25, 100]}
-                component="div"
-                count={rows.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={(event, newPage) => setPage(newPage)}
-                onRowsPerPageChange={(event) => {
-                    setRowsPerPage(parseInt(event.target.value, 5));
-                    setPage(0);
-                }}
-            />
+                                    <TeacherCard elevation={3}>
+                                        <Box sx={{ p: 2 }}>
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    <StyledAvatar>
+                                                        {teacher.name.charAt(0)}
+                                                    </StyledAvatar>
+                                                    <Box sx={{ ml: 2 }}>
+                                                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                                            {teacher.name}
+                                                        </Typography>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                            <EmailIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                {teacher.email}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                </Box>
+                                                <IconButton onClick={(e) => handleMenuClick(e, teacher)}>
+                                                    <MoreVertIcon />
+                                                </IconButton>
+                                            </Box>
+
+                                            <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                                                <Chip
+                                                    icon={<ClassIcon />}
+                                                    label={`Class ${teacher.teachSclass.sclassName}`}
+                                                    size="small"
+                                                    sx={{
+                                                        bgcolor: 'primary.lighter',
+                                                        color: 'primary.main',
+                                                        '& .MuiChip-icon': { color: 'inherit' }
+                                                    }}
+                                                />
+                                                {teacher.teachSubject?.subName ? (
+                                                    <Chip
+                                                        icon={<SubjectIcon />}
+                                                        label={teacher.teachSubject.subName}
+                                                        size="small"
+                                                        sx={{
+                                                            bgcolor: 'success.lighter',
+                                                            color: 'success.main',
+                                                            '& .MuiChip-icon': { color: 'inherit' }
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <GreenButton
+                                                        size="small"
+                                                        onClick={() => navigate(`/Admin/teachers/choosesubject/${teacher.teachSclass._id}/${teacher._id}`)}
+                                                    >
+                                                        Add Subject
+                                                    </GreenButton>
+                                                )}
+                                            </Box>
+                                        </Box>
+                                    </TeacherCard>
+                                </motion.div>
+                            </Grid>
+                        ))}
+                    </AnimatePresence>
+                </Grid>
+            </motion.div>
+
+            <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            >
+                <MenuItem onClick={() => {
+                    navigate("/Admin/teachers/teacher/" + selectedTeacher?._id);
+                    handleMenuClose();
+                }}>
+                    View Details
+                </MenuItem>
+                <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
+                    Delete Teacher
+                </MenuItem>
+            </Menu>
 
             <SpeedDialTemplate actions={actions} />
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-        </Paper >
+        </Container>
     );
 };
 
-export default ShowTeachers
+const TeacherCard = styled(motion.div)`
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+`;
+
+const StyledAvatar = styled(Avatar)`
+    background: linear-gradient(135deg, #4361ee, #3a0ca3);
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+    font-weight: 600;
+`;
+
+export default ShowTeachers;
