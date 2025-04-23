@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
+import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Box } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
-
+import styled from 'styled-components';
+import { motion } from 'framer-motion';
 import HomeIcon from "@mui/icons-material/Home";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
@@ -14,72 +15,134 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 
 const SideBar = () => {
     const location = useLocation();
-    return (
-        <>
-            <React.Fragment>
-                <ListItemButton component={Link} to="/">
-                    <ListItemIcon>
-                        <HomeIcon color={location.pathname === ("/" || "/Admin/dashboard") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Home" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/classes">
-                    <ListItemIcon>
-                        <ClassOutlinedIcon color={location.pathname.startsWith('/Admin/classes') ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Classes" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/subjects">
-                    <ListItemIcon>
-                        <AssignmentIcon color={location.pathname.startsWith("/Admin/subjects") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Subjects" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/teachers">
-                    <ListItemIcon>
-                        <SupervisorAccountOutlinedIcon color={location.pathname.startsWith("/Admin/teachers") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Teachers" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/students">
-                    <ListItemIcon>
-                        <PersonOutlineIcon color={location.pathname.startsWith("/Admin/students") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Students" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/notices">
-                    <ListItemIcon>
-                        <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Admin/notices") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Notices" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/complains">
-                    <ListItemIcon>
-                        <ReportIcon color={location.pathname.startsWith("/Admin/complains") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Complains" />
-                </ListItemButton>
-            </React.Fragment>
-            <Divider sx={{ my: 1 }} />
-            <React.Fragment>
-                <ListSubheader component="div" inset>
-                    User
-                </ListSubheader>
-                <ListItemButton component={Link} to="/Admin/profile">
-                    <ListItemIcon>
-                        <AccountCircleOutlinedIcon color={location.pathname.startsWith("/Admin/profile") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Profile" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/logout">
-                    <ListItemIcon>
-                        <ExitToAppIcon color={location.pathname.startsWith("/logout") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Logout" />
-                </ListItemButton>
-            </React.Fragment>
-        </>
-    )
-}
+    
+    const menuItems = [
+        { icon: <HomeIcon />, text: "Home", path: "/" },
+        { icon: <ClassOutlinedIcon />, text: "Classes", path: "/Admin/classes" },
+        { icon: <AssignmentIcon />, text: "Subjects", path: "/Admin/subjects" },
+        { icon: <SupervisorAccountOutlinedIcon />, text: "Teachers", path: "/Admin/teachers" },
+        { icon: <PersonOutlineIcon />, text: "Students", path: "/Admin/students" },
+        { icon: <AnnouncementOutlinedIcon />, text: "Notices", path: "/Admin/notices" },
+        { icon: <ReportIcon />, text: "Complains", path: "/Admin/complains" },
+    ];
 
-export default SideBar
+    const userItems = [
+        { icon: <AccountCircleOutlinedIcon />, text: "Profile", path: "/Admin/profile" },
+        { icon: <ExitToAppIcon />, text: "Logout", path: "/logout" },
+    ];
+
+    const isActive = (path) => {
+        if (path === "/") {
+            return location.pathname === "/" || location.pathname === "/Admin/dashboard";
+        }
+        return location.pathname.startsWith(path);
+    };
+
+    return (
+        <StyledNav>
+            <Box sx={{ mb: 3 }}>
+                {menuItems.map((item, index) => (
+                    <motion.div
+                        key={item.text}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                    >
+                        <StyledListItem
+                            component={Link}
+                            to={item.path}
+                            $isActive={isActive(item.path)}
+                        >
+                            <ListItemIcon>
+                                {React.cloneElement(item.icon, {
+                                    sx: { 
+                                        color: isActive(item.path) ? '#4361ee' : 'inherit',
+                                        transition: 'all 0.3s ease'
+                                    }
+                                })}
+                            </ListItemIcon>
+                            <StyledListItemText 
+                                primary={item.text}
+                                $isActive={isActive(item.path)}
+                            />
+                        </StyledListItem>
+                    </motion.div>
+                ))}
+            </Box>
+
+            <Divider sx={{ 
+                my: 2,
+                backgroundColor: 'rgba(67, 97, 238, 0.1)',
+            }} />
+
+            <Box>
+                <StyledSubheader component="div" inset>
+                    User
+                </StyledSubheader>
+                {userItems.map((item, index) => (
+                    <motion.div
+                        key={item.text}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: (menuItems.length + index) * 0.1 }}
+                    >
+                        <StyledListItem
+                            component={Link}
+                            to={item.path}
+                            $isActive={isActive(item.path)}
+                        >
+                            <ListItemIcon>
+                                {React.cloneElement(item.icon, {
+                                    sx: { 
+                                        color: isActive(item.path) ? '#4361ee' : 'inherit',
+                                        transition: 'all 0.3s ease'
+                                    }
+                                })}
+                            </ListItemIcon>
+                            <StyledListItemText 
+                                primary={item.text}
+                                $isActive={isActive(item.path)}
+                            />
+                        </StyledListItem>
+                    </motion.div>
+                ))}
+            </Box>
+        </StyledNav>
+    );
+};
+
+export default SideBar;
+
+const StyledNav = styled.nav`
+    padding: 0.5rem;
+`;
+
+const StyledListItem = styled(ListItemButton)`
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+    background: ${props => props.$isActive ? 'rgba(67, 97, 238, 0.1)' : 'transparent'};
+    
+    &:hover {
+        background: rgba(67, 97, 238, 0.1);
+        transform: translateX(5px);
+    }
+`;
+
+const StyledListItemText = styled(ListItemText)`
+    & .MuiListItemText-primary {
+        font-weight: ${props => props.$isActive ? '600' : '400'};
+        color: ${props => props.$isActive ? '#4361ee' : 'inherit'};
+        transition: all 0.3s ease;
+    }
+`;
+
+const StyledSubheader = styled(ListSubheader)`
+    background: transparent;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+`;
