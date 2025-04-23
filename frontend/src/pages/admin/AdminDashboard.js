@@ -7,11 +7,14 @@ import {
     Typography,
     Divider,
     IconButton,
+    useTheme,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppBar, Drawer } from '../../components/styles';
+import styled from 'styled-components';
+import { motion } from 'framer-motion';
 import Logout from '../Logout';
 import SideBar from './SideBar';
 import AdminProfile from './AdminProfile';
@@ -44,15 +47,17 @@ import AccountMenu from '../../components/AccountMenu';
 
 const AdminDashboard = () => {
     const [open, setOpen] = useState(false);
+    const theme = useTheme();
+
     const toggleDrawer = () => {
         setOpen(!open);
     };
 
     return (
-        <>
+        <StyledWrapper>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar open={open} position='absolute'>
+                <StyledAppBar position='absolute' open={open}>
                     <Toolbar sx={{ pr: '24px' }}>
                         <IconButton
                             edge="start"
@@ -66,31 +71,44 @@ const AdminDashboard = () => {
                         >
                             <MenuIcon />
                         </IconButton>
-                        <Typography
-                            component="h1"
-                            variant="h6"
-                            color="inherit"
-                            noWrap
-                            sx={{ flexGrow: 1 }}
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
                         >
-                            Admin Dashboard
-                        </Typography>
+                            <Typography
+                                component="h1"
+                                variant="h5"
+                                color="inherit"
+                                noWrap
+                                sx={{ 
+                                    flexGrow: 1,
+                                    fontWeight: 600,
+                                    background: 'linear-gradient(45deg, #4361ee, #3a0ca3)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent'
+                                }}
+                            >
+                                Admin Dashboard
+                            </Typography>
+                        </motion.div>
+                        <Box sx={{ flexGrow: 1 }} />
                         <AccountMenu />
                     </Toolbar>
-                </AppBar>
-                <Drawer variant="permanent" open={open} sx={open ? styles.drawerStyled : styles.hideDrawer}>
-                    <Toolbar sx={styles.toolBarStyled}>
+                </StyledAppBar>
+                <StyledDrawer variant="permanent" open={open} sx={open ? styles.drawerStyled : styles.hideDrawer}>
+                    <DrawerHeader>
                         <IconButton onClick={toggleDrawer}>
                             <ChevronLeftIcon />
                         </IconButton>
-                    </Toolbar>
+                    </DrawerHeader>
                     <Divider />
-                    <List component="nav">
+                    <StyledList component="nav">
                         <SideBar />
-                    </List>
-                </Drawer>
-                <Box component="main" sx={styles.boxStyled}>
-                    <Toolbar />
+                    </StyledList>
+                </StyledDrawer>
+                <MainContent component="main">
+                    <DrawerHeader />
                     <Routes>
                         <Route path="/" element={<AdminHomePage />} />
                         <Route path='*' element={<Navigate to="/" />} />
@@ -136,30 +154,60 @@ const AdminDashboard = () => {
 
                         <Route path="/logout" element={<Logout />} />
                     </Routes>
-                </Box>
+                </MainContent>
             </Box>
-        </>
+        </StyledWrapper>
     );
 }
 
-export default AdminDashboard
+export default AdminDashboard;
+
+const StyledWrapper = styled.div`
+    min-height: 100vh;
+    background: ${props => props.theme.palette?.background?.default || '#f8fafc'};
+`;
+
+const StyledAppBar = styled(AppBar)`
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.9);
+    border-bottom: 1px solid rgba(241, 242, 244, 0.5);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+`;
+
+const StyledDrawer = styled(Drawer)`
+    & .MuiDrawer-paper {
+        border-right: none;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+`;
+
+const DrawerHeader = styled(Toolbar)`
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: ${props => props.theme.spacing?.(0, 1) || '0 8px'};
+`;
+
+const StyledList = styled(List)`
+    padding: 1rem;
+`;
+
+const MainContent = styled(Box)`
+    flex-grow: 1;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.05), rgba(58, 12, 163, 0.05));
+    padding: 2rem;
+
+    @media (max-width: 600px) {
+        padding: 1rem;
+    }
+`;
 
 const styles = {
-    boxStyled: {
-        backgroundColor: (theme) =>
-            theme.palette.mode === 'light'
-                ? theme.palette.grey[100]
-                : theme.palette.grey[900],
-        flexGrow: 1,
-        height: '100vh',
-        overflow: 'auto',
-    },
-    toolBarStyled: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        px: [1],
-    },
     drawerStyled: {
         display: "flex"
     },
@@ -169,4 +217,4 @@ const styles = {
             display: 'none',
         },
     },
-}
+};
